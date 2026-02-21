@@ -32,7 +32,7 @@ modules:
   # 1.5. NVIDIA DRIVERS — Kernel module + userspace via ublue-os akmods
   # =========================================================================
   - type: akmods
-    base: bazzite
+    base: main
     install:
       - v4l2loopback
     nvidia-driver: nvidia-open
