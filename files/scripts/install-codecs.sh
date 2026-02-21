@@ -6,3 +6,7 @@ dnf5 -y install --allowerasing \
     gstreamer1-plugins-bad-freeworld \
     gstreamer1-plugins-ugly
 echo ":: Codec installation complete."
+
+# Remove tuned-ppd first (conflicts with power-profiles-daemon)
+dnf5 -y remove tuned-ppd || true
+dnf5 -y install power-profiles-daemon
