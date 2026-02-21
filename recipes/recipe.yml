@@ -38,22 +38,39 @@ modules:
       - COPY --from=ghcr.io/ublue-os/akmods:main-43 / /tmp/akmods-common
       - RUN dnf5 install -y /tmp/akmods-common/rpms/ublue-os/ublue-os-akmods*.rpm && dnf5 install -y /tmp/akmods-common/rpms/kmods/kmod-v4l2loopback*.rpm || true && rm -rf /tmp/akmods-common
 
-  # 2b. Copy nvidia-open kmod RPMs and install with userspace drivers
+  # 2b. Copy nvidia-open kmod RPMs
   - type: containerfile
     snippets:
       - COPY --from=ghcr.io/ublue-os/akmods-nvidia-open:main-43 / /tmp/akmods-nvidia
       - RUN find /tmp/akmods-nvidia
+
+  # 2c. Install ublue nvidia-addons (provides negativo17 repo + nvidia-kmod-common)
+  #     then DISABLE rpmfusion to avoid akmod conflicts,
+  #     then enable negativo17-nvidia repo and install userspace drivers from there,
+  #     then install the pre-built kmod from the akmods container
+  - type: containerfile
+    snippets:
       - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/ublue-os/ublue-os-nvidia*.rpm
-      - RUN dnf5 install -y --exclude=akmod-nvidia,akmod-nvidia-open xorg-x11-drv-nvidia xorg-x11-drv-nvidia-cuda xorg-x11-drv-nvidia-libs xorg-x11-drv-nvidia-power nvidia-settings
+      - RUN sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/rpmfusion-nonfree*.repo
+      - RUN sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/fedora-cisco-openh264.repo || true
+      - RUN sed -i '0,/enabled=0/{s/enabled=0/enabled=1/}' /etc/yum.repos.d/negativo17-fedora-nvidia.repo
+      - RUN dnf5 install -y nvidia-driver nvidia-driver-cuda nvidia-driver-libs nvidia-driver-NVML nvidia-modprobe nvidia-persistenced nvidia-settings
       - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/kmods/kmod-nvidia*.rpm
       - RUN ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
       - RUN rm -rf /tmp/akmods-nvidia
 
-  # 2c. NVIDIA kernel args (blacklist nouveau, enable DRM)
+  # 2d. Re-enable rpmfusion for the rest of the build (gaming packages need it)
+  - type: containerfile
+    snippets:
+      - RUN sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/rpmfusion-nonfree*.repo
+      - RUN sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/rpmfusion-nonfree-updates*.repo || true
+
+  # 2e. NVIDIA kernel args
   - type: containerfile
     snippets:
       - RUN mkdir -p /usr/lib/bootc/kargs.d && echo '["rd.driver.blacklist=nouveau", "modprobe.blacklist=nouveau", "nvidia-drm.modeset=1", "nvidia-drm.fbdev=1"]' > /usr/lib/bootc/kargs.d/00-nvidia.toml || true
-  # =========================================================================
+
+  =========================================================================
   # 3. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
   # =========================================================================
   - from-file: gaming-packages.yml
