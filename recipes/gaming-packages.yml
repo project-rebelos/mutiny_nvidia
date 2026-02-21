@@ -32,7 +32,7 @@ install:
     - mesa-libEGL
 
     # ---- NVIDIA Specific ----
-    - nvidia-vaapi-driver
+    - libva-nvidia-driver
     - vdpauinfo
 
     # ---- Gaming: Performance Overlays & Tools ----
@@ -42,7 +42,6 @@ install:
     - gamemode              # Feral Interactive's on-demand performance optimizer
     - gamescope             # Valve's micro-compositor for per-game display control
     - power-profiles-daemon
-    - kernel-bazzite
 
 
     # ---- Gaming: Controller Support ----
