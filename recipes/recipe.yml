@@ -29,16 +29,48 @@ modules:
       - setup-repos.sh
 
   # =========================================================================
-  # 2. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
+  # 2. NVIDIA — Pre-built kernel modules from ublue-os/akmods
+  # =========================================================================
+
+  # 2a. Copy common akmods (signing keys, v4l2loopback)
+  - type: copy
+    from: ghcr.io/ublue-os/akmods:main-43
+    src: /
+    dest: /tmp/akmods-common
+
+  - type: containerfile
+    snippets:
+      - RUN find /tmp/akmods-common
+      - RUN dnf5 install -y /tmp/akmods-common/rpms/ublue-os/ublue-os-akmods*.rpm
+      - RUN dnf5 install -y /tmp/akmods-common/rpms/kmods/kmod-v4l2loopback*.rpm || true
+      - RUN rm -rf /tmp/akmods-common
+
+  # 2b. Copy nvidia-open driver kmod RPMs
+  - type: copy
+    from: ghcr.io/ublue-os/akmods-nvidia-open:main-43
+    src: /
+    dest: /tmp/akmods-nvidia
+
+  - type: containerfile
+    snippets:
+      - RUN find /tmp/akmods-nvidia
+      - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/ublue-os/ublue-os-nvidia*.rpm
+      - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/kmods/kmod-nvidia*.rpm
+      - RUN ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
+      - RUN rm -rf /tmp/akmods-nvidia
+
+  # 2c. NVIDIA kernel args (blacklist nouveau, enable DRM)
+  - type: containerfile
+    snippets:
+      - RUN mkdir -p /usr/lib/bootc/kargs.d && echo '["rd.driver.blacklist=nouveau", "modprobe.blacklist=nouveau", "nvidia-drm.modeset=1", "nvidia-drm.fbdev=1"]' > /usr/lib/bootc/kargs.d/00-nvidia.toml || true
+
+  # =========================================================================
+  # 3. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
   # =========================================================================
   - from-file: gaming-packages.yml
 
-  - type: script
-    scripts:
-      - install-codecs.sh
-
   # =========================================================================
-  # 3. SYSTEM CONFIG FILES — sysctl, modprobe, udev, etc.
+  # 3a. SYSTEM CONFIG FILES — sysctl, modprobe, udev, etc.
   # =========================================================================
   - type: files
     files:

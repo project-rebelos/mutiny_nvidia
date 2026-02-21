@@ -33,9 +33,9 @@ install:
     - mesa-libEGL
 
     # ---- NVIDIA Specific ----
-    - libva-nvidia-driver
+    # - libva-nvidia-driver
     - vdpauinfo
-    - xorg-x11-drv-nvidia-power
+    # - xorg-x11-drv-nvidia-power
 
     # ---- Gaming: Performance Overlays & Tools ----
     - mangohud              # FPS/performance overlay

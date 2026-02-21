@@ -33,7 +33,7 @@ dnf5 -y install \
 # packages. The fsync kernel gives us the most impactful gaming patches
 # (futex2/fsync, winesync/ntsync prep, HDR patches, etc.)
 
-dnf5 -y copr enable bazzite-org/bazzite
+# dnf5 -y copr enable bazzite-org/bazzite
 
 # ---- COPR: LatencyFleX ----
 # Provides: latencyflex-vulkan-layer — reduces input latency in games
@@ -77,6 +77,8 @@ dnf5 -y config-manager setopt "*rpmfusion*".priority=5
 # curl -s -L https://nvidia.github.io/libnvidia-container/stable/rpm/nvidia-container-toolkit.repo | \
 #     tee /etc/yum.repos.d/nvidia-container-toolkit.repo
 
-
+# Prevent RPM Fusion's akmod-nvidia from being pulled in — we use pre-built kmods
+dnf5 -y config-manager setopt "rpmfusion-nonfree".excludepkgs="akmod-nvidia,akmod-nvidia-open"
+dnf5 -y config-manager setopt "rpmfusion-nonfree-updates".excludepkgs="akmod-nvidia,akmod-nvidia-open"
 
 echo ":: Repository setup complete."
