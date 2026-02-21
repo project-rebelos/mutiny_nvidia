@@ -14,10 +14,10 @@ install:
   allow-erasing: true
   packages:
     # ---- Multimedia Codecs (that Fedora Onyx doesn't ship) ----
-    - ffmpeg
+    # - ffmpeg
     - gstreamer1-plugins-bad-free
-    - gstreamer1-plugins-bad-freeworld
-    - gstreamer1-plugins-ugly
+    # - gstreamer1-plugins-bad-freeworld
+    # - gstreamer1-plugins-ugly
     # - gstreamer1-vaapi    # Can conflict with NVIDIA
     - libva-utils
     # - mesa-va-drivers-freeworld   # not needed by NVIDIA
