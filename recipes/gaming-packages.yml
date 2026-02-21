@@ -1,0 +1,90 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/module-v1.json
+
+# gaming-packages.yml — Core gaming packages and system utilities
+#
+# These are the "easy wins" from Bazzite's package list — things that install
+# cleanly from repos without needing complex conditional logic or custom
+# build steps.
+#
+# Organized by category for clarity.
+
+type: dnf
+install:
+  allow-erasing: true
+  packages:
+    # ---- Multimedia Codecs (that Fedora Onyx doesn't ship) ----
+    - ffmpeg
+    - gstreamer1-plugins-bad-free
+    - gstreamer1-plugins-bad-freeworld
+    - gstreamer1-plugins-ugly
+    # - gstreamer1-vaapi    # Can conflict with NVIDIA
+    - libva-utils
+    # - mesa-va-drivers-freeworld   # not needed by NVIDIA
+    # - mesa-vdpau-drivers-freeworld   # not needed by NVIDIA
+
+    # ---- Gaming: Vulkan / OpenGL / Mesa ----
+    - vulkan-loader
+    - vulkan-tools
+    - mesa-vulkan-drivers
+    - mesa-dri-drivers
+    - mesa-libGL
+    - mesa-libEGL
+
+    # ---- NVIDIA Specific ----
+    - nvidia-vaapi-driver
+    - vdpauinfo
+
+    # ---- Gaming: Performance Overlays & Tools ----
+    - mangohud              # FPS/performance overlay
+    - vkBasalt              # Vulkan post-processing (sharpening, CAS, etc.)
+    - latencyflex-vulkan-layer  # Input latency reduction (from COPR)
+    - gamemode              # Feral Interactive's on-demand performance optimizer
+    - gamescope             # Valve's micro-compositor for per-game display control
+    - power-profiles-daemon
+    - kernel-bazzite
+
+
+    # ---- Gaming: Controller Support ----
+    # NOTE: xone (Xbox One wireless) requires an akmod/DKMS build — skipping
+    # for now as it's medium-difficulty. xpad (wired Xbox) works out of the box.
+    # - game-devices-udev     # Udev rules for common game controllers
+    - joystick-support      # Joystick calibration tools (if available)
+    - steam-devices
+
+    # ---- Networking & VPN ----
+    - tailscale             # Mesh VPN (from tailscale repo)
+
+    # ---- Container & Development Tools ----
+    - distrobox             # Run any Linux distro in a container
+    - toolbox               # Fedora's default container tool (supplement)
+    - podman                # Should already be present, but ensure it
+
+    # ---- System Utilities ----
+    - ptyxis                # Modern terminal designed for container workflows
+    - topgrade              # Unified updater (system + flatpaks + etc.)
+    - just                  # Command runner (for ujust recipes)
+    - input-remapper        # Remap input devices (keyboard, mouse, gamepad)
+    - libcec                # HDMI-CEC support for HTPC-like use
+    # - solaar                # Logitech device manager
+
+    # ---- File Manager & ROM Properties ----
+    - rom-properties-gtk3        # Preview ROM file metadata in file manager
+
+    # ---- Webapp Manager ----
+    - webapp-manager        # Create web apps from websites
+
+    # ---- AMD-Specific (skip for this version)----
+    # - rocm-opencl           # AMD ROCm OpenCL runtime
+    # - radeontop             # AMD GPU monitoring
+
+    # ---- Fonts (commonly wanted, good QoL) ----
+    - google-noto-sans-fonts
+    - google-noto-emoji-color-fonts
+    - liberation-fonts
+    - fira-code-fonts
+
+
+# remove:
+#   packages:
+#     - firefox             # Users will install via Flatpak for sandboxing

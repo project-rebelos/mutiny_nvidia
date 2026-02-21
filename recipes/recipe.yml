@@ -1,0 +1,90 @@
+# yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
+
+###############################################################################
+# Budgie Gaming Image
+#
+# A gaming-optimized Fedora Budgie Atomic image inspired by Bazzite's desktop
+# gaming features, without handheld device support or Bazzite branding.
+#
+# Base: Official Fedora Budgie Atomic (Onyx) — vanilla Fedora, no uBlue layer
+# Target: NVIDIA GPUs (RTX 3060 / Ampere — nvidia-open driver)
+# Desktop: Budgie
+# Fedora: 43
+#
+###############################################################################
+
+name: budgie-gaming-nvidia
+description: A gaming-optimized Fedora Budgie Atomic desktop image (NVIDIA version)
+
+base-image: quay.io/fedora-ostree-desktops/budgie-atomic
+image-version: 43
+
+modules:
+
+  # =========================================================================
+  # 1. REPOSITORIES — Add COPR repos and third-party sources
+  # =========================================================================
+  - type: script
+    scripts:
+      - setup-repos.sh
+
+  # =========================================================================
+  # 1.5. NVIDIA DRIVERS — Kernel module + userspace via ublue-os akmods
+  # =========================================================================
+  - type: akmods
+    base: bazzite
+    install:
+      - v4l2loopback
+    nvidia-driver: nvidia-open
+
+  # =========================================================================
+  # 1.6. KERNEL ARGUMENTS — Blacklist nouveau, enable NVIDIA DRM
+  # =========================================================================
+  - type: kargs
+    kargs:
+      - rd.driver.blacklist=nouveau
+      - modprobe.blacklist=nouveau
+      - nvidia-drm.modeset=1
+      - nvidia-drm.fbdev=1
+
+  # =========================================================================
+  # 2. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
+  # =========================================================================
+  - from-file: gaming-packages.yml
+
+  # =========================================================================
+  # 3. SYSTEM CONFIG FILES — sysctl, modprobe, udev, etc.
+  # =========================================================================
+  - type: files
+    files:
+      - source: system
+        destination: /
+
+  # =========================================================================
+  # 4. FLATPAK DEFAULTS — Flathub + default apps
+  # =========================================================================
+  - from-file: flatpaks.yml
+
+  # =========================================================================
+  # 5. SYSTEMD UNITS — Enable/disable services
+  # =========================================================================
+  - from-file: systemd-config.yml
+
+  # =========================================================================
+  # 6. CUSTOM JUSTFILES — ujust commands for user convenience
+  # =========================================================================
+  - type: justfiles
+    include:
+      - gaming.just
+
+  # =========================================================================
+  # 7. POST-INSTALL TWEAKS — Final cleanup and config
+  # =========================================================================
+  - type: script
+    scripts:
+      - post-install.sh
+
+  # =========================================================================
+  # 8. IMAGE SIGNING
+  # =========================================================================
+  - type: signing

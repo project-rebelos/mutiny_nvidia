@@ -1,0 +1,21 @@
+---
+# yaml-language-server: $schema=https://schema.blue-build.org/module-v1.json
+
+# systemd-config.yml — Enable and disable systemd services
+#
+# Enables gaming-relevant services and disables things we don't need.
+
+type: systemd
+system:
+  enabled:
+    - tailscaled.service          # Tailscale VPN daemon
+    - input-remapper.service      # Input device remapping
+    - fstrim.timer                # Periodic SSD TRIM
+    - podman-auto-update.timer    # Auto-update podman containers
+    - nvidia-suspend.service
+    - nvidia-resume.service
+    - nvidia-hibernate.service
+
+  disabled: []
+  # Add any services to disable here, e.g.:
+  # - packagekit.service          # Not needed on atomic desktop
