@@ -12,6 +12,7 @@
 type: dnf
 install:
   allow-erasing: true
+  skip-unavailable: true
   packages:
     # ---- Multimedia Codecs (that Fedora Onyx doesn't ship) ----
     # - ffmpeg
@@ -42,7 +43,7 @@ install:
     - latencyflex-vulkan-layer  # Input latency reduction (from COPR)
     - gamemode              # Feral Interactive's on-demand performance optimizer
     - gamescope             # Valve's micro-compositor for per-game display control
-    - power-profiles-daemon
+    # - power-profiles-daemon
 
 
     # ---- Gaming: Controller Support ----
@@ -80,7 +81,7 @@ install:
 
     # ---- Fonts (commonly wanted, good QoL) ----
     - google-noto-sans-fonts
-    - google-noto-emoji-color-fonts
+    - google-noto-color-emoji-fonts
     - liberation-fonts
     - fira-code-fonts
 
