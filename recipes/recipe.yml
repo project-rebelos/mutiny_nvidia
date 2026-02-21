@@ -29,25 +29,6 @@ modules:
       - setup-repos.sh
 
   # =========================================================================
-  # 1.5. NVIDIA DRIVERS — Kernel module + userspace via ublue-os akmods
-  # =========================================================================
-  - type: akmods
-    base: main
-    install:
-      - v4l2loopback
-    nvidia-driver: nvidia-open
-
-  # =========================================================================
-  # 1.6. KERNEL ARGUMENTS — Blacklist nouveau, enable NVIDIA DRM
-  # =========================================================================
-  - type: kargs
-    kargs:
-      - rd.driver.blacklist=nouveau
-      - modprobe.blacklist=nouveau
-      - nvidia-drm.modeset=1
-      - nvidia-drm.fbdev=1
-
-  # =========================================================================
   # 2. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
   # =========================================================================
   - from-file: gaming-packages.yml
