@@ -37,7 +37,7 @@ dnf5 -y copr enable bazzite-org/bazzite
 
 # ---- COPR: LatencyFleX ----
 # Provides: latencyflex-vulkan-layer — reduces input latency in games
-dnf5 -y copr enable kylegospo/LatencyFleX
+# dnf5 -y copr enable kylegospo/LatencyFleX
 
 # ---- COPR: hl2linux-selinux (Valve/Steam SELinux policies) ----
 # Provides: SELinux policies that let Steam work properly on Fedora Atomic
@@ -45,11 +45,11 @@ dnf5 -y copr enable kylegospo/LatencyFleX
 
 # ---- COPR: webapp-manager ----
 # Provides: webapp-manager — create web apps from websites
-dnf5 -y copr enable kylegospo/webapp-manager
+# dnf5 -y copr enable kylegospo/webapp-manager
 
 # ---- COPR: rom-properties ----
 # Provides: rom-properties — file manager plugin to preview ROM metadata
-dnf5 -y copr enable bazzite-org/rom-properties
+dnf5 -y copr enable bazzite-org/rom-properties -y
 
 dnf5 -y makecache || true
 
