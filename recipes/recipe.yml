@@ -33,23 +33,18 @@ modules:
     scripts:
       - setup-repos.sh
 
-  # =========================================================================
   # 2. NVIDIA DRIVER INSTALLATION
-  #    Uses containerfile snippets to COPY pre-built kmods from the ublue-os
-  #    akmods container images, then installs userspace drivers from the
-  #    negativo17 repo (which doesn't have the akmod-nvidia dependency chain).
-  #    This is the same method used by Bluefin/Aurora/Bazzite.
-  # =========================================================================
-
-  # 2a. Copy the nvidia-open akmods container contents
+  #    COPY akmods, then run the install script.
+  #    We must use --mount to access /tmp/files since raw containerfile
+  #    snippets don't get BlueBuild's automatic stage-files bind mount.
   - type: containerfile
     snippets:
       - COPY --from=ghcr.io/ublue-os/akmods-nvidia-open:main-43 / /tmp/akmods-nvidia
-
-  # 2b. Run the nvidia install script (a single RUN to keep layers clean)
-  - type: containerfile
-    snippets:
-      - RUN /tmp/files/scripts/install-nvidia.sh
+      - |
+        RUN \
+            --mount=type=bind,from=stage-files,src=/files,dst=/tmp/files,rw \
+            chmod +x /tmp/files/scripts/install-nvidia.sh && \
+            /tmp/files/scripts/install-nvidia.sh
 
   # =========================================================================
   # 3. CORE SYSTEM PACKAGES — Gaming stack and utilities
