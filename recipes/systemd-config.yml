@@ -2,10 +2,7 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/module-v1.json
 
 # systemd-config.yml — Enable and disable systemd services
-#
-# Enables gaming-relevant services and disables things we don't need.
 
-# systemd-config.yml
 type: systemd
 system:
   enabled:
@@ -13,7 +10,5 @@ system:
     - input-remapper.service
     - fstrim.timer
     - podman-auto-update.timer
-    # nvidia-suspend/resume/hibernate handled by post-install.sh conditionally
+
   disabled: []
-  # Add any services to disable here, e.g.:
-  # - packagekit.service          # Not needed on atomic desktop

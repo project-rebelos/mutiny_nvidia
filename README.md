@@ -1,46 +1,40 @@
-# Budgie Gaming Image
+# Budgie Gaming NVIDIA
 
-## What is this?
+A gaming-optimized Fedora Budgie Atomic (Onyx) image with NVIDIA drivers.
 
-This is a **prototype** BlueBuild recipe that takes the official Fedora Budgie Atomic image and layers on gaming-focused packages and optimizations drawn from Bazzite's feature set.
+## GPU Support
 
-**Target:** AMD GPU desktop users who want a gaming-ready Budgie desktop.
+- **NVIDIA RTX 30-series and newer** (uses `nvidia-open` kernel module)
+- Pre-built kernel modules from [ublue-os/akmods](https://github.com/ublue-os/akmods)
+- Userspace drivers from the [negativo17](https://negativo17.org/) repository
 
-## Base Image
+## How NVIDIA Drivers Work
 
-`quay.io/fedora-ostree-desktops/budgie-atomic:43` — the official Fedora Budgie Atomic image.
+This image uses the same NVIDIA installation method as Universal Blue's Bluefin/Aurora/Bazzite:
 
-We chose this over `ublue-os/budgie-atomic-main` because Universal Blue deprecated their Budgie base image in September 2025. If it comes back, switching to it would give us free codec/driver support from the uBlue layer.
+1. Pre-built `kmod-nvidia` is copied from `ghcr.io/ublue-os/akmods-nvidia-open:main-43`
+2. `ublue-os-nvidia-addons` RPM provides repo configs and signing keys
+3. Userspace drivers (`nvidia-driver`, `nvidia-settings`, etc.) come from negativo17 (NOT RPM Fusion)
+4. Kernel arguments are set via bootc to blacklist nouveau and enable modesetting
 
-## What's Included
+## Included Software
 
-| Category | What You Get |
-|---|---|
-| **Multimedia** | Full codec support via RPM Fusion + Terra (H264, H265, VP9, AV1) |
-| **GPU** | Latest Mesa from Terra, Vulkan drivers, AMD Southern/Sea Islands support |
-| **Gaming Tools** | Steam, Lutris, MangoHud, vkBasalt, LatencyFleX, GameMode, Gamescope |
-| **Controllers** | game-devices-udev rules for common gamepads |
-| **Networking** | BBR TCP congestion control, Tailscale VPN |
-| **Containers** | Distrobox + Podman preinstalled |
-| **Terminal** | Ptyxis (container-aware terminal) |
-| **Flatpaks** | Full Flathub enabled; Discord, OBS, ProtonUp-Qt, Heroic preinstalled |
-| **Utilities** | input-remapper, webapp-manager, topgrade auto-updater |
-| **AMD** | ROCm OpenCL runtime, radeontop monitoring |
-| **Fonts** | Noto, Liberation, Fira Code |
+- Steam (Flatpak), MangoHud, vkBasalt, GameMode, Gamescope
+- Tailscale, Distrobox, Podman
+- Full multimedia codec support (FFmpeg, GStreamer)
+- Controller support (Steam, Xbox, PlayStation, etc.)
 
+## Installation
 
+```bash
+# Rebase from any Fedora Atomic desktop:
+rpm-ostree rebase ostree-unverified-registry:ghcr.io/<your-username>/budgie-gaming-nvidia:latest
+```
 
-## Next Steps (Iteration Plan)
+## Building
 
-Once this base builds and boots successfully, consider adding in order of impact:
+Builds automatically via GitHub Actions. To build locally:
 
-1. **fsync kernel swap** — biggest gaming improvement (NTsync, HDR, scheduler support)
-2. **sched-ext CPU schedulers** — LAVD/BORE for smoother gaming under load
-3. **ZRAM tuning** — 4GB LZ4 for better memory management during gaming
-4. **duperemove timer** — reduce Wine prefix disk usage
-5. **xone akmod** — Xbox wireless controller support
-6. **Kyber I/O scheduler** — prevent I/O starvation during game installs
-
-## License
-
-Apache-2.0 (same as Bazzite)
+```bash
+bluebuild build recipes/recipe.yml
+```

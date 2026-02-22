@@ -2,11 +2,6 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/module-v1.json
 
 # flatpaks.yml — Default Flatpak configuration
-#
-# Enables Flathub and installs a curated set of default Flatpak apps.
-# These are the apps most gaming desktop users will want out of the box.
-#
-# Uses default-flatpaks v2 configuration format (configurations: list).
 
 type: default-flatpaks
 configurations:
@@ -22,25 +17,23 @@ configurations:
       - org.mozilla.firefox
 
       # ---- Flatpak Management ----
-      - com.github.tchx84.Flatseal          # Manage Flatpak permissions
-      - io.github.flattool.Warehouse        # Manage Flatpak apps & runtimes
-      - io.github.kolunmi.Bazaar            # Bazaar — Flatpak-focused app store
+      - com.github.tchx84.Flatseal
+      - io.github.flattool.Warehouse
+      - io.github.kolunmi.Bazaar
 
       # ---- Gaming ----
-      - com.valvesoftware.Steam             # Flatpak Steam (alternative to layered)
-      - net.davidotek.pupgui2               # ProtonUp-Qt — manage Proton/Wine versions
-      # - com.heroicgameslauncher.hgl         # Heroic — Epic/GOG/Amazon game launcher
+      - com.valvesoftware.Steam
+      - net.davidotek.pupgui2
 
       # ---- Media ----
-      - org.videolan.VLC                    # Media player
+      - org.videolan.VLC
 
       # ---- Communication ----
       - im.riot.Riot
 
       # ---- Utilities ----
-      - org.gnome.FileRoller                # Archive manager
-      - org.gnome.Calculator                # Calculator
-      # - com.github.mijorus.gearlever        # Manage AppImages
+      - org.gnome.FileRoller
+      - org.gnome.Calculator
 
     remove:
-      - org.fedoraproject.MediaWriter       # Not needed on atomic desktop
+      - org.fedoraproject.MediaWriter

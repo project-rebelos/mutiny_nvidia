@@ -1,20 +1,23 @@
 # yaml-language-server: $schema=https://schema.blue-build.org/recipe-v1.json
 
 ###############################################################################
-# Budgie Gaming Image
+# Budgie Gaming NVIDIA Image
 #
-# A gaming-optimized Fedora Budgie Atomic image inspired by Bazzite's desktop
-# gaming features, without handheld device support or Bazzite branding.
+# A gaming-optimized Fedora Budgie Atomic image with NVIDIA drivers.
 #
 # Base: Official Fedora Budgie Atomic (Onyx) — vanilla Fedora, no uBlue layer
-# Target: NVIDIA GPUs (RTX 3060 / Ampere — nvidia-open driver)
+# GPU: NVIDIA (RTX 30-series and newer via nvidia-open kmod)
 # Desktop: Budgie
 # Fedora: 43
+#
+# NVIDIA driver installation follows the ublue-os/main nvidia-install.sh
+# approach: pre-built kmods from ghcr.io/ublue-os/akmods-nvidia-open,
+# userspace drivers from the negativo17 repo (NOT RPM Fusion xorg-x11-drv-nvidia).
 #
 ###############################################################################
 
 name: budgie-gaming-nvidia
-description: A gaming-optimized Fedora Budgie Atomic desktop image (NVIDIA version)
+description: A gaming-optimized Fedora Budgie Atomic desktop image with NVIDIA drivers
 
 base-image: quay.io/fedora-ostree-desktops/budgie-atomic
 image-version: 43
@@ -23,60 +26,39 @@ modules:
 
   # =========================================================================
   # 1. REPOSITORIES — Add COPR repos and third-party sources
+  #    (RPM Fusion added here; NVIDIA negativo17 repos come from
+  #     ublue-os-nvidia-addons RPM in step 2)
   # =========================================================================
   - type: script
     scripts:
       - setup-repos.sh
 
-  ## =========================================================================
-  # 2. NVIDIA — Pre-built kernel modules from ublue-os/akmods
+  # =========================================================================
+  # 2. NVIDIA DRIVER INSTALLATION
+  #    Uses containerfile snippets to COPY pre-built kmods from the ublue-os
+  #    akmods container images, then installs userspace drivers from the
+  #    negativo17 repo (which doesn't have the akmod-nvidia dependency chain).
+  #    This is the same method used by Bluefin/Aurora/Bazzite.
   # =========================================================================
 
-  # 2a. Copy common akmods (signing keys, v4l2loopback)
-  - type: containerfile
-    snippets:
-      - COPY --from=ghcr.io/ublue-os/akmods:main-43 / /tmp/akmods-common
-      - RUN dnf5 install -y /tmp/akmods-common/rpms/ublue-os/ublue-os-akmods*.rpm && dnf5 install -y /tmp/akmods-common/rpms/kmods/kmod-v4l2loopback*.rpm || true && rm -rf /tmp/akmods-common
-
-  # 2b. Copy nvidia-open kmod RPMs
+  # 2a. Copy the nvidia-open akmods container contents
   - type: containerfile
     snippets:
       - COPY --from=ghcr.io/ublue-os/akmods-nvidia-open:main-43 / /tmp/akmods-nvidia
-      - RUN find /tmp/akmods-nvidia
 
-  # 2c. Install ublue nvidia-addons (provides negativo17 repo + nvidia-kmod-common)
-  #     then DISABLE rpmfusion to avoid akmod conflicts,
-  #     then enable negativo17-nvidia repo and install userspace drivers from there,
-  #     then install the pre-built kmod from the akmods container
+  # 2b. Run the nvidia install script (a single RUN to keep layers clean)
   - type: containerfile
     snippets:
-      - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/ublue-os/ublue-os-nvidia*.rpm
-      - RUN sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/rpmfusion-nonfree*.repo
-      - RUN sed -i 's@enabled=1@enabled=0@g' /etc/yum.repos.d/fedora-cisco-openh264.repo || true
-      - RUN sed -i '0,/enabled=0/{s/enabled=0/enabled=1/}' /etc/yum.repos.d/negativo17-fedora-nvidia.repo
-      - RUN dnf5 install -y nvidia-driver nvidia-driver-cuda nvidia-driver-libs nvidia-driver-NVML nvidia-modprobe nvidia-persistenced nvidia-settings
-      - RUN dnf5 install -y /tmp/akmods-nvidia/rpms/kmods/kmod-nvidia*.rpm
-      - RUN ln -sf libnvidia-ml.so.1 /usr/lib64/libnvidia-ml.so
-      - RUN rm -rf /tmp/akmods-nvidia
+      - RUN /tmp/files/scripts/install-nvidia.sh
 
-  # 2d. Re-enable rpmfusion for the rest of the build (gaming packages need it)
-  - type: containerfile
-    snippets:
-      - RUN sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/rpmfusion-nonfree*.repo
-      - RUN sed -i 's@enabled=0@enabled=1@g' /etc/yum.repos.d/rpmfusion-nonfree-updates*.repo || true
-
-  # 2e. NVIDIA kernel args
-  - type: containerfile
-    snippets:
-      - RUN mkdir -p /usr/lib/bootc/kargs.d && echo '["rd.driver.blacklist=nouveau", "modprobe.blacklist=nouveau", "nvidia-drm.modeset=1", "nvidia-drm.fbdev=1"]' > /usr/lib/bootc/kargs.d/00-nvidia.toml || true
-
-  =========================================================================
-  # 3. CORE SYSTEM PACKAGES — Gaming stack, drivers, and utilities
+  # =========================================================================
+  # 3. CORE SYSTEM PACKAGES — Gaming stack and utilities
+  #    (installed AFTER nvidia so repos are in the right state)
   # =========================================================================
   - from-file: gaming-packages.yml
 
   # =========================================================================
-  # 3a. SYSTEM CONFIG FILES — sysctl, modprobe, udev, etc.
+  # 4. SYSTEM CONFIG FILES — sysctl, modprobe, udev, etc.
   # =========================================================================
   - type: files
     files:
@@ -84,30 +66,30 @@ modules:
         destination: /
 
   # =========================================================================
-  # 4. FLATPAK DEFAULTS — Flathub + default apps
+  # 5. FLATPAK DEFAULTS — Flathub + default apps
   # =========================================================================
   - from-file: flatpaks.yml
 
   # =========================================================================
-  # 5. SYSTEMD UNITS — Enable/disable services
+  # 6. SYSTEMD UNITS — Enable/disable services
   # =========================================================================
   - from-file: systemd-config.yml
 
   # =========================================================================
-  # 6. CUSTOM JUSTFILES — ujust commands for user convenience
+  # 7. CUSTOM JUSTFILES — ujust commands for user convenience
   # =========================================================================
   - type: justfiles
     include:
       - gaming.just
 
   # =========================================================================
-  # 7. POST-INSTALL TWEAKS — Final cleanup and config
+  # 8. POST-INSTALL TWEAKS — Final cleanup and config
   # =========================================================================
   - type: script
     scripts:
       - post-install.sh
 
   # =========================================================================
-  # 8. IMAGE SIGNING
+  # 9. IMAGE SIGNING
   # =========================================================================
   - type: signing
